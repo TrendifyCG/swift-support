@@ -1,7 +1,15 @@
-import { Inter } from "next/font/google";
-import "./globals.css";
+import "@/app/_styles/globals.css";
+import NextTopLoader from "nextjs-toploader";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
+import { Josefin_Sans } from "next/font/google";
+import { SupportProvider } from "@/app/_context/SupportContext";
+import { AuthProvider } from "./_context/AuthContext";
 
-const inter = Inter({ subsets: ["latin"] });
+const josefin = Josefin_Sans({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "Create Next App",
@@ -10,8 +18,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
+    <AuthProvider>
+      <html lang="en">
+        <body className={josefin.className}>
+          <NextTopLoader showSpinner={false} color="#BE75FF" />
+          <ToastContainer />
+          <SupportProvider>{children}</SupportProvider>
+        </body>
+      </html>
+    </AuthProvider>
   );
 }
