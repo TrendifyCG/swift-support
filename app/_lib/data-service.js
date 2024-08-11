@@ -118,11 +118,56 @@ export const saveConversations = async (conversations) => {
 
 export const saveFeedback=async (feed)=>{
   try{
-    await addDoc(collection(firestore, "feedback"), feed);
+    await addDoc(collection(firestore, "feedbacks"), feed);
+    
 
 
   } catch(error){
     throw error
 
   }
+
 }
+
+export const getallFeedbacks=async ()=>{
+  try{
+    const feedbacksRef = collection(firestore, "feedbacks");
+    const querySnapshot = await getDocs(feedbacksRef);
+    const feedbacks= querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    return feedbacks;
+
+
+ 
+  }catch(error){
+ 
+  } 
+ }
+
+ export const getRatings = async () => {
+  try {
+    const feedbacksRef = collection(firestore, "feedbacks"); 
+    const querySnapshot = await getDocs(feedbacksRef);
+    let accumulatedRating = 0;
+    
+    querySnapshot.docs.forEach((doc) => {
+      const data = doc.data();
+      if (data.rating) {
+        accumulatedRating += data.rating; 
+      }
+    });
+    const avgRating=accumulatedRating/querySnapshot.docs.length
+
+
+    return {
+      avgRate:avgRating,
+      totalRating: querySnapshot.docs.length
+    }; 
+  } catch (error) {
+    console.error("Error calculating total rating:", error); 
+    return null; 
+  }
+};
