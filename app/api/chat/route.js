@@ -14,7 +14,7 @@ export async function POST(req) {
     if (!file || !file.base64 || !file.type) {
       systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}. Your replies should be based solely on the questions the customer asks you.`;
     } else {
-      const url = await uploadDoc(file);
+      const url = await uploadDoc(file,apiKey);
 
       systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}, and use the data from ${url} as context. Your replies should be within the scope of the data provided in the file.`;
     }

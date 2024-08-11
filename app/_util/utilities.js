@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
 import fs from 'fs'
+import { GoogleAIFileManager } from "@google/generative-ai/server";
+import path from 'path';
+
 export const generateUniqueId = () => {
   return uuidv4();
 };
@@ -35,7 +37,7 @@ async function saveFileLocally(base64, type) {
   return filePath;
 }
 
-export async function uploadDoc(fileData) {
+export async function uploadDoc(fileData,apiKey) {
   const fileManager = new GoogleAIFileManager(apiKey);
   const { base64, type } = fileData;
 

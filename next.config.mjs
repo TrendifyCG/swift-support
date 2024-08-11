@@ -1,4 +1,19 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
-
-export default nextConfig;
+const nextConfig = {
+    output: 'standalone',
+    experimental: {
+      serverComponentsExternalPackages: ['lz4'],
+    },
+    webpack: (config, { isServer }) => {
+      if (!isServer) {
+        config.resolve.fallback = {
+          ...config.resolve.fallback,
+          fs: false,
+        };
+      }
+      return config;
+    },
+  };
+  
+  export default nextConfig;
+  
