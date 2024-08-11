@@ -280,7 +280,7 @@ export default function ChatPopup() {
                   Chat with Us
                 </Typography>
                 <Button
-                        onClick={handleSendMessage}
+                        onClick={handleFeedbackClick}
                         variant="contained"
                         color="primary"
                         sx={{fontFamily:nunito.style.fontFamily}}
