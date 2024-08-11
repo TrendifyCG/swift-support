@@ -121,12 +121,11 @@ export default function ChatPopup() {
       return;
     }
 
-    let base64File;
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = async () => {
-    base64File = reader.result.split(',')[1]; 
-  }
+    const base64File = reader.result.split(',')[1]; 
+  
   
     
     const requestData = {
@@ -157,6 +156,7 @@ export default function ChatPopup() {
       } catch (error) {
         console.error("Request Failed:", error);
       }
+    }
     };
   
 
