@@ -8,7 +8,9 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req) {
   try {
-    const { message, file, language, uid } = await req.json();
+    const { message, file, language } = await req.json();
+
+    console.log(message, file, language);
 
     let systemInstruction;
 

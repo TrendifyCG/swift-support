@@ -123,10 +123,14 @@ export default function ChatPopup() {
       return;
     }
 
+    if (!user && !loading) {
+      toast.error("User is not authenticated");
+      return;
+    }
+
     let requestData = {
       language,
       message,
-      userId: user != null ? user.uid : false,
     };
 
     if (file) {
@@ -159,7 +163,18 @@ export default function ChatPopup() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("API Response:", data);
+        console.log("DATA: ", data);
+        // const conversationData = {
+        //   userId: user.user_id,
+        //   user_message: message,
+        //   bot_message: output,
+        //   sender: systemInstruction,
+        //   file_url: file || file.type || file.base64 ? file : null,
+        //   language: language,
+        //   timestamp: new Date().toISOString(),
+        // };
+
+        // await saveConversations(conversationData);
       } else {
         console.error("API Error:", data.error);
         toast.error(data.error);

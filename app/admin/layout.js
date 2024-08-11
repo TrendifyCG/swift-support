@@ -5,7 +5,7 @@ import Header from "@/app/_components/Backend/Header";
 import SideBarMenu from "@/app/_components/Backend/SideBarMenu";
 import ClientOnly from "@/app/_components/ClientOnly";
 import { useSupport } from "@/app/_context/SupportContext";
-import { AppBar, Drawer } from "@/app/_util/utilities";
+import { AppBar, Drawer } from "@/app/_util/util";
 import { Box, Container, CssBaseline, Toolbar } from "@mui/material";
 import NextTopLoader from "nextjs-toploader";
 
