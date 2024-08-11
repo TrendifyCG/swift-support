@@ -23,7 +23,7 @@ export async function POST(req) {
       });
 
       const reply = await model.generateContent({ text: message });
-      return NextResponse.json({ response: reply.text });
+      return NextResponse.json({ response: reply.response.text() });
     }
   } catch (error) {
     console.error("Error:", error);

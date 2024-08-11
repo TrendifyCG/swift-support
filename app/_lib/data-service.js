@@ -11,6 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {GoogleAIFike}
 
 export async function checkUserExistsByEmail(email) {
   const usersRef = collection(firestore, "users");
@@ -89,3 +90,8 @@ export const uploadBase64Image = async (base64String, imageName) => {
     throw error;
   }
 };
+
+
+export const saveConversations= async (conversations)=>{
+
+} 
