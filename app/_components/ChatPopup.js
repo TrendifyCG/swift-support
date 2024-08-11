@@ -1,5 +1,5 @@
 "use client";
-import { Nunito, Roboto } from "@next/font/google";
+
 import { saveFeedback } from "../_lib/data-service";
 import { DeleteForeverRounded } from "@mui/icons-material";
 import {
@@ -25,7 +25,6 @@ import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import InputAdornment from "@mui/material/InputAdornment";
 import { styled } from "@mui/system";
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../_context/AuthContext";
@@ -33,16 +32,6 @@ import { useAuth } from "../_context/AuthContext";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faTimes } from "@fortawesome/free-solid-svg-icons";
 
-const nunito = Nunito({
-  weight: ["400", "500", "700"],
-  style: ["italic"],
-  subsets: ["latin"],
-});
-const roboto = Roboto({
-  weight: ["400", "500", "700"],
-  style: ["italic"],
-  subsets: ["latin"],
-});
 import { useSupport } from "../_context/SupportContext";
 import {
   deleteFile,
@@ -256,7 +245,7 @@ export default function ChatPopup() {
     const newMessage = {
       userId: user.uid,
       userMessage: message,
-      botMessage: "Sending...",
+      botMessage: null,
       fileUrl: fileUrl || null,
       fileId: fileId || null,
       filemetaId: pdfId || null,
@@ -265,8 +254,8 @@ export default function ChatPopup() {
     };
 
     updateConversationList([...state.conversationList, newMessage]);
-
     setMessage("");
+    setBotSending(true);
 
     try {
       const requestData = {
@@ -274,8 +263,6 @@ export default function ChatPopup() {
         message,
         pdfContent: pdfContent || null,
       };
-
-      // setBotSending(true);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/chat/`, {
         method: "POST",
@@ -314,6 +301,8 @@ export default function ChatPopup() {
             : conv
         )
       );
+    } finally {
+      setBotSending(false);
     }
   }
 
@@ -325,7 +314,7 @@ export default function ChatPopup() {
         rating: value,
       };
       const save = await saveFeedback(feed);
-      toast.success("Feedback Sent!");
+      toast.success("Thanks for your feedback!");
       handleFeedbackClose();
     } catch (error) {
       toast.error("Request failed:", error);
@@ -337,8 +326,6 @@ export default function ChatPopup() {
     const fetchLastMessage = async () => {
       try {
         const content = await getUserFile(user);
-
-        console.log(content);
 
         if (content?.id) {
           setFileId(content.data.fileId);
@@ -495,7 +482,6 @@ export default function ChatPopup() {
                     onClick={handleFeedbackClick}
                     variant="contained"
                     color="primary"
-                    sx={{ fontFamily: nunito.style.fontFamily }}
                   >
                     Give Feedback
                   </Button>
@@ -640,7 +626,6 @@ export default function ChatPopup() {
           <DialogTitle
             sx={{
               fontSize: "23px",
-              fontFamily: roboto.style.fontFamily,
             }}
           >
             Leave Feedback
@@ -651,10 +636,7 @@ export default function ChatPopup() {
         </Stack>{" "}
         <Box sx={{ p: 3, display: "flex", flexDirection: "column" }}>
           <Stack sx={{ display: "flex", flexDirection: "row" }}>
-            <Typography
-              component="legend"
-              sx={{ fontFamily: nunito.style.fontFamily, marginRight: "3px" }}
-            >
+            <Typography component="legend" sx={{ marginRight: "3px" }}>
               Rate Conversation:
             </Typography>
             <Rating

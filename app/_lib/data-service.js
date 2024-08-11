@@ -204,64 +204,53 @@ export const getUserFile = async (user) => {
   }
 };
 
-export const saveFeedback=async (feed)=>{
-  try{
+export const saveFeedback = async (feed) => {
+  try {
     await addDoc(collection(firestore, "feedbacks"), feed);
-    
-
-
-  } catch(error){
-    throw error
-
+  } catch (error) {
+    throw error;
   }
+};
 
-}
-
-export const getallFeedbacks=async ()=>{
-  try{
+export const getallFeedbacks = async () => {
+  try {
     const feedbacksRef = collection(firestore, "feedbacks");
     const querySnapshot = await getDocs(feedbacksRef);
-    const feedbacks= querySnapshot.docs.map((doc) => ({
+    const feedbacks = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
 
-    console.log(feedbacks)
+    console.log(feedbacks);
 
     return feedbacks;
+  } catch (error) {
+    throw error;
+  }
+};
 
-
- 
-  }catch(error){
-
-    throw new Error(error)
- 
-  } 
- }
-
- export const getRatings = async () => {
+export const getRatings = async () => {
   try {
-    const feedbacksRef = collection(firestore, "feedbacks"); 
+    const feedbacksRef = collection(firestore, "feedbacks");
     const querySnapshot = await getDocs(feedbacksRef);
     let accumulatedRating = 0;
-    
+
     querySnapshot.docs.forEach((doc) => {
       const data = doc.data();
       if (data.rating) {
-        accumulatedRating += data.rating; 
+        accumulatedRating += data.rating;
       }
     });
-    const avgRating=accumulatedRating/querySnapshot.docs.length
-    
-    console.log(avgRating)
+    const avgRating = accumulatedRating / querySnapshot.docs.length;
 
+    console.log(avgRating);
 
     return {
-      avgRate:avgRating,
-      totalRating: querySnapshot.docs.length
-    }; 
+      avgRate: avgRating,
+      totalRating: querySnapshot.docs.length,
+    };
   } catch (error) {
-    console.error("Error calculating total rating:", error); 
-    return null; 
+    console.error("Error calculating total rating:", error);
+    return null;
   }
 };

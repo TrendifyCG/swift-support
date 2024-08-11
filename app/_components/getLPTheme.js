@@ -134,12 +134,13 @@ const getDesignTokens = (mode) => ({
     },
   },
   typography: {
-    fontFamily: ['"Josefin Sans", "sans-serif"'].join(","),
+    fontFamily: '"Nunito", "sans-serif"',
     h1: {
       fontSize: 60,
       fontWeight: 600,
       lineHeight: 78 / 70,
       letterSpacing: -0.2,
+      fontFamily: '"Roboto", "sans-serif"',
     },
     h2: {
       fontSize: 48,
