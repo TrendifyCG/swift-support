@@ -6,10 +6,20 @@ import Card from "@mui/material/Card";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
+import { Mulish } from "next/font/google";
+import { Nunito } from "next/font/google";
 import { keyframes } from "@mui/system";
 import { useEffect, useState } from "react";
 import { Typewriter } from "react-simple-typewriter";
 
+const mulish=Mulish({
+  subsets: ["latin"],
+  display: "swap",
+})
+const nunito=Nunito({
+subsets: ["latin"],
+display: "swap",
+})
 const chatMessages = [
   { user: "support", text: "Hello! How can I assist you today?" },
   { user: "customer", text: "I need help with my account." },
@@ -144,6 +154,8 @@ export default function Features() {
               variant="h4"
               color="text.primary"
               textAlign="center"
+              sx={{fontWeight:'bold'}}
+              fontFamily={mulish.style.fontFamily}
             >
               Enhance Your Customer Support
             </Typography>
@@ -152,6 +164,8 @@ export default function Features() {
               variant="body1"
               color="text.secondary"
               textAlign="center"
+              
+              fontFamily={nunito.style.fontFamily}
               sx={{ mb: { xs: 2, sm: 4 } }}
             >
               Experience top-notch customer support with our AI-powered chatbot.

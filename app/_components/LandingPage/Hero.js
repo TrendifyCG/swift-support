@@ -148,7 +148,7 @@ export default function Hero({ userLoading, user }) {
               },
             }}
           >
-            <Button variant="contained" color="primary" data-aos="fade-up">
+            <Button variant="contained" sx={{fontFamily:mulish.style.fontFamily}} color="primary" data-aos="fade-up">
               Start now
             </Button>
           </Stack>
