@@ -92,5 +92,8 @@ export const uploadBase64Image = async (base64String, imageName) => {
 
 
 export const saveConversations= async (conversations)=>{
+     const conversationsRef=await collection(firestore,"conversations")
+     await addDoc(conversationsRef,conversations)
+
 
 } 

@@ -22,7 +22,7 @@ import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { styled } from "@mui/system";
 import { toast } from "react-toastify";
-
+import { useAuth } from "../_context/AuthContext";
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
   bottom: "20px",
@@ -67,13 +67,14 @@ const PromptText = styled(Typography)(({ theme, show }) => ({
 const languages = ["English", "Spanish", "French", "German", "Italian"];
 
 export default function ChatPopup() {
+const {user,loading}=useAuth()
   const [open, setOpen] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
   const [language, setLanguage] = useState(languages[0]);
   const [file, setFile] = useState();
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
-
+useEffect(()=>console.log(user))
   function handleLanguageChange(event) {
     setLanguage(event.target.value);
   }
