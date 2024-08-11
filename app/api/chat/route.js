@@ -1,6 +1,7 @@
 import { uploadDoc } from "@/app/_util/utilities";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { saveConversations } from "@/app/_lib/data-service";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
