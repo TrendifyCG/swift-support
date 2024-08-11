@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-
+import { GoogleAIFileManager } from "@google/generative-ai/server";
+import fs from 'fs'
 export const generateUniqueId = () => {
   return uuidv4();
 };

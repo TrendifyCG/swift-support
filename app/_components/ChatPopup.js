@@ -21,6 +21,7 @@ import {
 import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { styled } from "@mui/system";
+import { toast } from "react-toastify";
 
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
@@ -70,7 +71,7 @@ export default function ChatPopup() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
   const [language, setLanguage] = useState(languages[0]);
-  const [file, setFile]=useState()
+  const [file, setFile] = useState();
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
 
   function handleLanguageChange(event) {
@@ -84,15 +85,6 @@ export default function ChatPopup() {
   function handleAttachClose() {
     setOpenAttachDialog(false);
   }
-
-  /*function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-      // Handle the file (upload, display, etc.)
-      console.log("File attached:", file);
-    }
-    handleAttachClose();
-  }*/
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -112,55 +104,71 @@ export default function ChatPopup() {
   function handleFileUpload(event) {
     const uploadedFile = event.target.files[0];
     if (uploadedFile) {
-      setFile(uploadedFile); 
+      setFile(uploadedFile);
     }
     handleAttachClose();
   }
 
+  function convertFileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64File = reader.result.split(",")[1];
+        resolve(base64File);
+      };
+      reader.onerror = reject;
+    });
+  }
+
   async function handleSendMessage() {
     if (!message) {
-      alert("Please enter a message.");
+      toast.error("Please enter a message.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-    const base64File = reader.result.split(',')[1]; 
-  
-  
-    
-    const requestData = {
-        language,
-        message,
-        file: {
+    let requestData = { language, message };
+
+    // Check if a file is present
+    if (file) {
+      try {
+        // Convert file to base64
+        const base64File = await convertFileToBase64(file);
+        // Include file data in the request
+        requestData.file = {
           base64: base64File,
           type: file.type,
-        },
-      };
-
-      try {
-        const response = await fetch("/api/chat/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestData),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          console.log("API Response:", data);
-        } else {
-          console.error("API Error:", data.error);
-        }
+        };
       } catch (error) {
-        console.error("Request Failed:", error);
+        console.error("File Conversion Failed:", error);
+        toast.error("Failed to process the file. Please try again.");
+        return;
       }
     }
-    };
-  
+
+    try {
+      // Send the request to the server
+      const response = await fetch("/api/chat/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("API Response:", data);
+      } else {
+        console.error("API Error:", data.error);
+        toast.error(data.error);
+      }
+    } catch (error) {
+      toast.error(error.message);
+      console.error("Request Failed:", error);
+    }
+  }
 
   return (
     <>
@@ -242,7 +250,11 @@ export default function ChatPopup() {
               placeholder="Type your message..."
               InputProps={{
                 endAdornment: (
-                  <Button onClick={handleSendMessage} variant="contained" color="primary">
+                  <Button
+                    onClick={handleSendMessage}
+                    variant="contained"
+                    color="primary"
+                  >
                     Send
                   </Button>
                 ),

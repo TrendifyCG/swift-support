@@ -7,24 +7,28 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req) {
   try {
-    const body = await req.json();
-    const { message, file, language } = body;
+    const { message, file, language } = await req.json();
+
+    let systemInstruction;
+
     if (!file || !file.base64 || !file.type) {
-      const model = await genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: `You are a customer support chat bot. You reply to messages of customers in ${language}, Your replies should be based solely on the questions the customer asks you .`,
-      });
+      systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}. Your replies should be based solely on the questions the customer asks you.`;
     } else {
       const url = await uploadDoc(file);
 
-      const model = await genAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
-        systemInstruction: `You are a customer support chat bot. You reply to messages of customers in ${language}, and use the data from ${url} as context. Your replies should be within the scope of the data provided in the file.`,
-      });
-
-      const reply = await model.generateContent({ text: message });
-      return NextResponse.json({ response: reply.response.text() });
+      systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}, and use the data from ${url} as context. Your replies should be within the scope of the data provided in the file.`;
     }
+
+    const model = await genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction,
+    });
+
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    const output = await response.text();
+
+    return NextResponse.json({ response: output });
   } catch (error) {
     console.error("Error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
