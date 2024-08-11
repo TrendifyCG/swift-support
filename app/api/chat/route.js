@@ -57,8 +57,12 @@ export async function POST(req) {
     const body = await req.json();
     const { message, file, language } = body;
     if (!file || !file.base64 || !file.type) {
-        throw new Error("File data is missing or incomplete");
-      }
+        const model = await genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            systemInstruction: `You are a customer support chat bot. You reply to messages of customers in ${language}, Your replies should be based solely on the questions the customer asks you .`,
+          });
+      
+      }else{
   
     const url = await uploadDoc(file);
 
@@ -69,6 +73,7 @@ export async function POST(req) {
 
     const reply = await model.generateContent({ text: message });
     return NextResponse.json({ response: reply.text });
+}
 
   } catch (error) {
     console.error("Error:", error);
