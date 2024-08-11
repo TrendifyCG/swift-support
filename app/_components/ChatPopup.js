@@ -509,7 +509,7 @@ export default function ChatPopup() {
                         },
                       }}
                     >
-                      Remove Pdf
+                      {deletingFile ? "Removing..." : "Remove Pdf"}
                     </Button>
                   )}
 

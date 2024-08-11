@@ -25,7 +25,8 @@ function ChatMessage({ message, isBot, user, botSending }) {
             maxWidth: "70%",
             p: 2,
             borderRadius: 2,
-            backgroundColor: isBot ? "lightblue" : "lightgreen",
+            backgroundColor: isBot ? "#F0E1FF" : "#9C2DFF",
+            color: isBot ? "#131b20" : "#fff",
             boxShadow: 3,
             alignSelf: isBot ? "flex-start" : "flex-end",
           }}

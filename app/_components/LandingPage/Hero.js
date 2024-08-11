@@ -1,26 +1,15 @@
 "use client";
-import { alpha, Link } from "@mui/material";
+import { alpha } from "@mui/material";
 import Box from "@mui/material/Box";
-import { Mulish } from "next/font/google";
-import { Nunito } from "next/font/google";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
- const mulish=Mulish({
-    subsets: ["latin"],
-    display: "swap",
-  })
-const nunito=Nunito({
-  subsets: ["latin"],
-  display: "swap",
-})
 export default function Hero({ userLoading, user }) {
   const router = useRouter();
- 
+
   return (
     <Box
       id="hero"
@@ -51,7 +40,6 @@ export default function Hero({ userLoading, user }) {
             // className="animated-text animatedFadeInUp fadeInUp"
             data-aos="fade-down"
             variant="h1"
-            fontFamily={mulish.style.fontFamily}
             sx={{
               // display: "flex",
               // flexDirection: { xs: "column", md: "row" },
@@ -59,7 +47,7 @@ export default function Hero({ userLoading, user }) {
                 xs: "center",
                 md: "flex-start",
               },
-              
+
               textAlign: {
                 xs: "center",
                 md: "left",
@@ -76,7 +64,6 @@ export default function Hero({ userLoading, user }) {
             <Typography
               component="span"
               variant="h1"
-            fontFamily={mulish.style.fontFamily}
               sx={{
                 fontSize: {
                   xs: "clamp(1.5rem, 10vw, 2.5rem)",
@@ -94,8 +81,6 @@ export default function Hero({ userLoading, user }) {
             </Typography>
             <Typography
               component="span"
-              
-            fontFamily={mulish.style.fontFamily}
               variant="h1"
               sx={{
                 fontSize: {
@@ -104,6 +89,7 @@ export default function Hero({ userLoading, user }) {
                   md: "clamp(1.5rem, 10vw, 2.5rem)",
                   lg: "clamp(1.5rem, 10vw, 2.5rem)",
                 },
+                fontWeight: "bold",
               }}
             >
               Management
@@ -112,8 +98,6 @@ export default function Hero({ userLoading, user }) {
           <Typography
             data-aos="fade-left"
             color="text.secondary"
-            
-            fontFamily={nunito.style.fontFamily}
             sx={{
               alignSelf: {
                 xs: "center",
@@ -148,7 +132,7 @@ export default function Hero({ userLoading, user }) {
               },
             }}
           >
-            <Button variant="contained" sx={{fontFamily:mulish.style.fontFamily}} color="primary" data-aos="fade-up">
+            <Button variant="contained" color="primary" data-aos="fade-up">
               Start now
             </Button>
           </Stack>
