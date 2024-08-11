@@ -10,6 +10,7 @@ const initialState = {
     typeof window !== "undefined"
       ? localStorage.getItem("themeMode") || "light"
       : "light",
+  drawerOpen: false,
 };
 
 function SupportProvider({ children }) {
@@ -22,8 +23,14 @@ function SupportProvider({ children }) {
     localStorage.setItem("themeMode", newThemeMode);
   };
 
+  const toggleDrawer = () => {
+    dispatch({ type: "TOGGLE_DRAWER_MODE" });
+  };
+
   return (
-    <SupportContext.Provider value={{ state, dispatch, toggleThemeMode }}>
+    <SupportContext.Provider
+      value={{ state, dispatch, toggleThemeMode, toggleDrawer }}
+    >
       {children}
     </SupportContext.Provider>
   );

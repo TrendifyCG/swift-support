@@ -23,6 +23,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { signInSystem } from "@/app/_lib/auth";
+import { ADMIN_REDIRECT_URL, USER_REDIRECT_URL } from "@/app/_util/constants";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -46,10 +47,14 @@ const LoginPage = () => {
     setIsPending(true);
 
     try {
-      await signInSystem({ email, password, rememberMe });
+      const user = await signInSystem({ email, password, rememberMe });
       toast.success("Signed in successfully!");
 
-      router.push("/user/dashboard");
+      if (user.userRole == "admin") {
+        router.push(ADMIN_REDIRECT_URL);
+      } else {
+        router.push(USER_REDIRECT_URL);
+      }
     } catch (error) {
       toast.error(`Authentication failed. ${error.message}`);
       setIsPending(false);

@@ -3,6 +3,7 @@ import {
   addSocialAuthUser,
   checkUserExistsByEmail,
   checkUserExistsByUsername,
+  getUserByUID,
 } from "@/app/_lib/data-service";
 import {
   onAuthStateChanged as _onAuthStateChanged,
@@ -18,7 +19,12 @@ import {
 import { doc, writeBatch } from "firebase/firestore";
 import Cookies from "js-cookie";
 import { toast } from "react-toastify";
-import { generateUsername } from "../_util/utilities";
+import { generateUsername } from "@/app/_util/utilities";
+import {
+  ADMIN_REDIRECT_URL,
+  USER_REDIRECT_URL,
+  USER_ROLE,
+} from "@/app/_util/constants";
 
 export function onAuthStateChanged(cb) {
   return _onAuthStateChanged(auth, cb);
@@ -34,12 +40,17 @@ async function signInWithProvider(provider) {
     const user = result.user;
     const token = await user.getIdToken();
 
-    await updateUser(user);
+    const updatedUser = await updateUser(user);
+
     Cookies.set("auth_token", token, {
       path: "/",
     });
 
-    window.location.href = "/user/dashboard";
+    if (updatedUser.userRole == "admin") {
+      window.location.href = ADMIN_REDIRECT_URL;
+    } else {
+      window.location.href = USER_REDIRECT_URL;
+    }
   } catch (err) {
     toast.error(err.message);
   }
@@ -73,6 +84,7 @@ async function updateUser(user) {
   let baseUsername = user.displayName
     ? user.displayName.split(" ")[0].toLowerCase()
     : generateUsername();
+
   let username = baseUsername;
   let usernameExist = await checkUserExistsByUsername(username);
 
@@ -83,16 +95,23 @@ async function updateUser(user) {
 
   const emailExist = await checkUserExistsByEmail(user.email);
 
+  let userData;
+
   if (!emailExist || usernameExist) {
-    const userData = {
+    userData = {
       uid: user.uid,
       email: user.email,
       username: username,
+      userRole: USER_ROLE,
       image_url: user.photoURL || "/images/default_user.png",
     };
 
     await addSocialAuthUser(userData);
+  } else {
+    userData = await getUserByUID(user.uid);
   }
+
+  return userData.data;
 }
 
 export async function signInSystem({ email, password, rememberMe }) {
@@ -113,6 +132,8 @@ export async function signInSystem({ email, password, rememberMe }) {
       expires: rememberMe ? 2 : undefined,
       path: "/",
     });
+
+    return user;
   } catch (error) {
     throw error;
   }
@@ -143,6 +164,7 @@ export async function signUpSystem({ username, email, password }) {
       uid: user.uid,
       username: username,
       email: email,
+      userRole: USER_ROLE,
       image_url: "/images/default_user.png",
     });
 
@@ -153,6 +175,8 @@ export async function signUpSystem({ username, email, password }) {
     Cookies.set("auth_token", token, {
       path: "/",
     });
+
+    return user;
   } catch (error) {
     throw error;
   }

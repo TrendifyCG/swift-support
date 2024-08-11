@@ -24,14 +24,14 @@ export function AuthProvider({ children }) {
         } else {
           setUser(null);
           Cookies.remove("auth_token", { path: "/" });
-          if (pathname.startsWith("/account")) {
+          if (pathname.startsWith("/admin")) {
             router.push("/login");
           }
         }
       } else {
         setUser(null);
         Cookies.remove("auth_token", { path: "/" });
-        if (pathname.startsWith("/account")) {
+        if (pathname.startsWith("/admin")) {
           router.push("/login");
         }
       }
