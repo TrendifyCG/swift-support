@@ -15,7 +15,7 @@ export async function POST(req) {
     if (!file || !file.base64 || !file.type) {
       systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}. Your replies should be based solely on the questions the customer asks you.`;
     } else {
-      const url = await uploadDoc(file,apiKey);
+      const url = await uploadDoc(file, apiKey);
 
       systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}, and use the data from ${url} as context. Your replies should be within the scope of the data provided in the file.`;
     }
@@ -29,20 +29,6 @@ export async function POST(req) {
     const response = await result.response;
     const output = await response.text();
 
-    const conversationData = {
-      uid: uid,
-      message: message,
-      response: output,
-      systemInstruction: systemInstruction,
-      file:file||file.type|| file.base64?file:false,
-      timestamp: new Date().toISOString()
-    };
-
-  try{
-    await saveConversations(conversationData);
-  }catch(error){
-    throw new Error(error)
-  }
     return NextResponse.json({ response: output });
   } catch (error) {
     console.error("Error:", error);

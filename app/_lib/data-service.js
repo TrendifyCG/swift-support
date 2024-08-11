@@ -90,29 +90,28 @@ export const uploadBase64Image = async (base64String, imageName) => {
   }
 };
 
-
-export const saveConversations= async (conversations)=>{
-     const conversationsRef=collection(firestore,"conversations")
-     await addDoc(conversationsRef,conversations)
-
-
-} 
-
-
-export const getConversations= async (uid,updateConvo) => {
+export const getConversations = async (uid, updateConvo) => {
   try {
     const conversationsRef = collection(firestore, "conversations");
 
     const q = query(conversationsRef, where("uid", "==", uid));
     const querySnapshot = await getDocs(q);
-    const conversations = querySnapshot.docs.map(doc => ({
+    const conversations = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
+      ...doc.data(),
     }));
 
     return conversations;
   } catch (error) {
     console.error("Error fetching conversations:", error);
     throw new Error("Failed to retrieve conversations");
+  }
+};
+
+export const saveConversations = async (conversations) => {
+  try {
+    await addDoc(collection(firestore, "conversations"), conversations);
+  } catch (error) {
+    throw error;
   }
 };
