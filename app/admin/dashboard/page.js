@@ -53,28 +53,28 @@ function Dashboard() {
       >
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
-            imgUrl="/images/box.png"
+            imgUrl="https://static.vecteezy.com/system/resources/previews/016/016/742/non_2x/transparent-like-feedback-icon-free-png.png"
             total={feedbacks.length}
             title="Total Feedbacks"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
-            imgUrl="/images/list-items.png"
+            imgUrl="https://uxwing.com/wp-content/themes/uxwing/download/e-commerce-currency-shopping/hand-with-star-icon.png"
             total={13}
             title="Average Rating"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
-            imgUrl="/images/low.png"
+            imgUrl="https://th.bing.com/th/id/R.cfe4a5b86f6cd5d0a1908966ec4681ed?rik=WmZWTZegirpqXw&riu=http%3a%2f%2fdesignlooter.com%2fimages%2fstar-svg-9.png&ehk=VEkCyZ2irgt8q4UOz868nPv5IedTGW%2fw%2b0PFwY3%2b3%2fs%3d&risl=&pid=ImgRaw&r=0"
             total={13}
             title="Total Stars"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
-            imgUrl="/images/expired.png"
+            imgUrl="https://th.bing.com/th/id/OIP.n1Ou9pCSKinqr71hrJ3cVwHaHa?rs=1&pid=ImgDetMain"
             total={12}
             title="Total Complains"
           />

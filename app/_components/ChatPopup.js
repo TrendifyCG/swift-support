@@ -1,10 +1,7 @@
 "use client";
 import { Nunito, Roboto } from "@next/font/google";
 import { saveFeedback } from "../_lib/data-service";
-import React, { useEffect, useState } from "react";
 import { DeleteForeverRounded } from "@mui/icons-material";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
-import ChatIcon from "@mui/icons-material/Chat";
 import {
   Box,
   Button,
@@ -32,7 +29,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../_context/AuthContext";
-import Link from "next/link";
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faTimes } from "@fortawesome/free-solid-svg-icons";
 
