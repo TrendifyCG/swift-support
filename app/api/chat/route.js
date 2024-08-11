@@ -54,7 +54,8 @@ async function uploadDoc(fileData) {
 
 export async function POST(req) {
   try {
-    const { message, file, language } = await req.json();
+    const body = await req.json();
+    const { message, file, language } = body;
     const url = await uploadDoc(file);
 
     const model = await genAI.getGenerativeModel({
