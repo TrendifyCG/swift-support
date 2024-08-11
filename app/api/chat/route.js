@@ -28,6 +28,7 @@ export async function POST(req) {
     const result = await model.generateContent(message);
     const response = await result.response;
     const output = await response.text();
+
     const conversationData = {
       uid: uid,
       message: message,
@@ -37,8 +38,11 @@ export async function POST(req) {
       timestamp: new Date().toISOString()
     };
 
+  try{
     await saveConversations(conversationData);
-
+  }catch(error){
+    throw new Error(error)
+  }
     return NextResponse.json({ response: output });
   } catch (error) {
     console.error("Error:", error);
