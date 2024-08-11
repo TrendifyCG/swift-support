@@ -275,19 +275,21 @@ export default function ChatPopup() {
                   justifyContent: "space-between",
                 }}
               >
-                <Stack direction={'flex'}flexDirection={'row'} sx={{ justifyContent: "space-between",}}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Chat with Us
-                </Typography>
-                <Button
-                        onClick={handleFeedbackClick}
-                        variant="contained"
-                        color="primary"
-                        sx={{fontFamily:nunito.style.fontFamily}}
-                      >
-                        Give Feedback
-                      </Button>
-                      </Stack>
+              <Stack
+      direction="row"
+      sx={{ justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 2 }} >
+      <Typography variant="h6">
+        Chat with Us
+      </Typography>
+      <Button
+        onClick={handleFeedbackClick}
+        variant="contained"
+        color="primary"
+        sx={{ fontFamily: nunito.style.fontFamily }}
+      >
+        Give Feedback
+      </Button>
+    </Stack>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Button
                     variant="outlined"
