@@ -10,6 +10,18 @@ export function supportReducer(state, action) {
         ...state,
         drawerOpen: !state.drawerOpen,
       };
+    case "SET_CONVERSATION_LIST":
+      return {
+        ...state,
+        conversationList: Array.isArray(action.payload)
+          ? action.payload
+          : [...state.conversationList, ...action.payload],
+      };
+    case "SET_CONVERSATION_LOADING":
+      return {
+        ...state,
+        productLoading: action.payload,
+      };
     default:
       return state;
   }

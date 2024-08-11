@@ -1,25 +1,24 @@
-import { uploadDoc } from "@/app/_util/utilities";
+import { fetchAndParsePDF } from "@/app/_util/utilities";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { saveConversations } from "@/app/_lib/data-service";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req) {
   try {
-    const { message, file, language } = await req.json();
+    const { message, language, pdfContent } = await req.json();
 
-    console.log(message, file, language);
+    let systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}.`;
 
-    let systemInstruction;
-
-    if (!file || !file.base64 || !file.type) {
-      systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}. Your replies should be based solely on the questions the customer asks you.`;
+    if (pdfContent) {
+      systemInstruction += ` You use the data from the provided file as context. The content from the file is as follows: ${pdfContent}.`;
+      systemInstruction += ` If the user asks about the file or mentions anything related to it, your replies should be based on this content.`;
+      systemInstruction += `
+      If the user asks questions like "Tell me about the file" or similar queries related to the uploaded file, 
+      you should provide a concise and clear summary based on the file content.`;
     } else {
-      const url = await uploadDoc(file, apiKey);
-
-      systemInstruction = `You are a customer support chat bot. You reply to messages of customers in ${language}, and use the data from ${url} as context. Your replies should be within the scope of the data provided in the file.`;
+      systemInstruction += ` Your replies should be based solely on the questions the customer asks you.`;
     }
 
     const model = await genAI.getGenerativeModel({
