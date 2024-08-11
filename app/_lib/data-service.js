@@ -115,3 +115,14 @@ export const saveConversations = async (conversations) => {
     throw error;
   }
 };
+
+export const saveFeedback=async (rating)=>{
+  try{
+    await addDoc(collection(firestore, "feedback"), rating);
+
+
+  } catch(error){
+    throw error
+
+  }
+}

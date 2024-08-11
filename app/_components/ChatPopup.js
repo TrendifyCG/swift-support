@@ -1,8 +1,9 @@
 "use client";
-
+import { Nunito, Roboto} from '@next/font/google';
 import React, { useEffect, useState } from "react";
 import {
   Button,
+  Rating,
   Box,
   Dialog,
   IconButton,
@@ -27,6 +28,17 @@ import { toast } from "react-toastify";
 import { convertFileToBase64 } from "@/app/_util/utilities";
 import { useAuth } from "../_context/AuthContext";
 import Link from "next/link";
+
+const nunito = Nunito({
+  weight: ['400', '500', '700'],
+  style: ['italic'],
+  subsets:['latin']
+});
+const roboto=Roboto({
+  weight: ['400', '500', '700'],
+  style: ['italic'],
+  subsets:['latin']
+});
 
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
@@ -74,13 +86,17 @@ const languages = ["English", "Spanish", "French", "German", "Italian"];
 export default function ChatPopup() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(2);
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
+  const [feedback, setFeedback]=useState("")
   const [messages, setMessages] = useState([]);
   const [language, setLanguage] = useState(languages[0]);
   const [file, setFile] = useState();
   const [uploadingFile, setUploadingFile] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
+  const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
+
   function handleLanguageChange(event) {
     setLanguage(event.target.value);
   }
@@ -89,7 +105,15 @@ export default function ChatPopup() {
     setOpenAttachDialog(true);
   }
 
+  function handleFeedbackClick() {
+    setOpenFeedbackDialog(true);
+  }
+
+
   function handleAttachClose() {
+    setOpenAttachDialog(false);
+  }
+  function handleFeedbackClose() {
     setOpenAttachDialog(false);
   }
 
@@ -286,6 +310,7 @@ export default function ChatPopup() {
                       ))}
                     </Select>
                   </FormControl>
+         
                 </Stack>
               </Stack>
               <Divider />
@@ -332,6 +357,31 @@ export default function ChatPopup() {
           </DialogActions>
         </Box>
       </Dialog>
+
+      <Dialog  open={openFeedbackDialog} onClose={handleFeedbackClose}>
+       <DialogTitle sx={{fontSize:"23px",fontFamily:roboto.style.fontFamily}}>Leave Feedback</DialogTitle>
+      <Box sx={{p:3,display:"flex", flexDirection:"column"}}>
+      <Stack sx={{display:"flex", flexDirection:"row"}}>
+      <Typography component="legend"   sx={{ fontFamily: nunito.style.fontFamily }}>Rate Conversation:</Typography>
+      <Rating
+        name="product-rating"
+        value={value}
+        onChange={(event, newValue) => {
+          setValue(newValue);
+        }}
+      />
+       <TextField      
+            type="text"
+            fullWidth
+            variant='outlined'
+            placeholder='Enter your feedback...'
+            onChange={(e)=>setFeedback(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+         
+      </Stack>
+      </Box>
+</Dialog>
     </>
   );
 }
