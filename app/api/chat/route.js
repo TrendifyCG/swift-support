@@ -33,6 +33,7 @@ export async function POST(req) {
       message: message,
       response: output,
       systemInstruction: systemInstruction,
+      file:file||file.type|| file.base64?file:false,
       timestamp: new Date().toISOString()
     };
 
