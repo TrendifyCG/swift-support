@@ -138,11 +138,15 @@ export const getallFeedbacks=async ()=>{
       ...doc.data(),
     }));
 
+    console.log(feedbacks)
+
     return feedbacks;
 
 
  
   }catch(error){
+
+    throw new Error(error)
  
   } 
  }
@@ -160,6 +164,8 @@ export const getallFeedbacks=async ()=>{
       }
     });
     const avgRating=accumulatedRating/querySnapshot.docs.length
+    
+    console.log(avgRating)
 
 
     return {

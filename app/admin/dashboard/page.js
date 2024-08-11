@@ -1,14 +1,36 @@
 "use client";
-
+import { getallFeedbacks, getRatings } from "@/app/_lib/data-service";
 import GridCard from "@/app/_components/Backend/GridCard";
 import GridItem from "@/app/_components/Backend/GridItem";
 import { useAuth } from "@/app/_context/AuthContext";
 import { Grid } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function Dashboard() {
   const { user, loading } = useAuth();
   const [loadData, setLoadData] = useState(false);
+  const [ratings,setRatings]=useState(0)
+  const [feedbacks,setFeedbacks]=useState([])
+
+
+ const getData= async ()=>{
+  const feed=await getallFeedbacks()
+  const {avgRate}=await getRatings()
+   
+  return {feed,avgRate}
+
+
+ }
+ useEffect(() => {
+  const fetchData = async () => {
+    const { feed, avgRate } = await getData();
+    setFeedbacks(feed || []);
+    setRatings(avgRate);
+  };
+
+  fetchData();
+}, []);
+
 
   return (
     <Grid container spacing={3}>
@@ -32,29 +54,29 @@ function Dashboard() {
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
             imgUrl="/images/box.png"
-            total={13}
-            title="Total Products"
+            total={feedbacks.length}
+            title="Total Feedbacks"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
             imgUrl="/images/list-items.png"
             total={13}
-            title="Total Items"
+            title="Average Rating"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
             imgUrl="/images/low.png"
             total={13}
-            title="Low Stock Alerts"
+            title="Total Stars"
           />
         </GridCard>
         <GridCard loading={loading} loadData={loadData}>
           <GridItem
             imgUrl="/images/expired.png"
             total={12}
-            title="Expired Products"
+            title="Total Complains"
           />
         </GridCard>
       </Grid>
