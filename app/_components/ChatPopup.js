@@ -74,7 +74,6 @@ const {user,loading}=useAuth()
   const [language, setLanguage] = useState(languages[0]);
   const [file, setFile] = useState();
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
-useEffect(()=>console.log(user))
   function handleLanguageChange(event) {
     setLanguage(event.target.value);
   }
@@ -128,7 +127,7 @@ useEffect(()=>console.log(user))
       return;
     }
 
-    let requestData = { language, message };
+    let requestData = { language, message, userId:user!=null?user.uid:false, };
 
     // Check if a file is present
     if (file) {

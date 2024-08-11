@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 export async function POST(req) {
   try {
-    const { message, file, language } = await req.json();
+    const { message, file, language, uid } = await req.json();
 
     let systemInstruction;
 
@@ -27,6 +27,15 @@ export async function POST(req) {
     const result = await model.generateContent(message);
     const response = await result.response;
     const output = await response.text();
+    const conversationData = {
+      uid: uid,
+      message: message,
+      response: output,
+      systemInstruction: systemInstruction,
+      timestamp: new Date().toISOString()
+    };
+
+    await saveConversations(conversationData);
 
     return NextResponse.json({ response: output });
   } catch (error) {
