@@ -23,11 +23,14 @@ import {
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
+import InputAdornment from '@mui/material/InputAdornment';
 import { styled } from "@mui/system";
 import { toast } from "react-toastify";
 import { convertFileToBase64 } from "@/app/_util/utilities";
 import { useAuth } from "../_context/AuthContext";
 import Link from "next/link";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 const nunito = Nunito({
   weight: ['400', '500', '700'],
@@ -374,8 +377,9 @@ export default function ChatPopup() {
        <DialogTitle sx={{fontSize:"23px",fontFamily:roboto.style.fontFamily}}>Leave Feedback</DialogTitle>
       <Box sx={{p:3,display:"flex", flexDirection:"column"}}>
       <Stack sx={{display:"flex", flexDirection:"row"}}>
-      <Typography component="legend"   sx={{ fontFamily: nunito.style.fontFamily }}>Rate Conversation:</Typography>
+      <Typography component="legend"   sx={{ fontFamily: nunito.style.fontFamily, marginRight:'3px' }}>Rate Conversation:</Typography>
       <Rating
+      
         name="product-rating"
         value={value}
         onChange={(event, newValue) => {
@@ -384,15 +388,24 @@ export default function ChatPopup() {
       />
        
       </Stack>
-      <TextField      
-            type="text"
-            fullWidth
-            variant='outlined'
-            placeholder='Enter your feedback...'
-            onChange={(e)=>setFeedback(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-         
+      <TextField
+      type="text"
+      fullWidth
+      variant="outlined"
+      placeholder="Enter your feedback..."
+      value={feedback}
+      onChange={(e) => setFeedback(e.target.value)}
+      sx={{ mb: 2, marginTop: '1rem' }}
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <IconButton >
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </IconButton>
+          </InputAdornment>
+        ),
+      }}
+    />
       </Box>
 </Dialog>
     </>
