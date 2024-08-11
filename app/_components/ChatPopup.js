@@ -370,7 +370,9 @@ export default function ChatPopup() {
           setValue(newValue);
         }}
       />
-       <TextField      
+       
+      </Stack>
+      <TextField      
             type="text"
             fullWidth
             variant='outlined'
@@ -379,7 +381,6 @@ export default function ChatPopup() {
             sx={{ mb: 2 }}
           />
          
-      </Stack>
       </Box>
 </Dialog>
     </>
