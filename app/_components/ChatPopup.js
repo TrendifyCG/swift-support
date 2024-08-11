@@ -1,5 +1,6 @@
 "use client";
 import { Nunito, Roboto} from '@next/font/google';
+import { saveFeedback } from '../_lib/data-service';
 import React, { useEffect, useState } from "react";
 import {
   Button,
@@ -30,7 +31,7 @@ import { convertFileToBase64 } from "@/app/_util/utilities";
 import { useAuth } from "../_context/AuthContext";
 import Link from "next/link";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane,faTimes } from '@fortawesome/free-solid-svg-icons';
 
 const nunito = Nunito({
   weight: ['400', '500', '700'],
@@ -89,7 +90,7 @@ const languages = ["English", "Spanish", "French", "German", "Italian"];
 export default function ChatPopup() {
   const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(2);
+  const [value, setValue] = useState(0);
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
   const [feedback, setFeedback]=useState("")
@@ -117,7 +118,7 @@ export default function ChatPopup() {
     setOpenAttachDialog(false);
   }
   function handleFeedbackClose() {
-    setOpenAttachDialog(false);
+    setOpenFeedbackDialog(false);
   }
 
   useEffect(() => {
@@ -210,6 +211,24 @@ export default function ChatPopup() {
       toast.error(error.message);
       console.error("Request Failed:", error);
     }
+  }
+
+  const sendFeedback=async ()=>{
+    try{
+      const feed={
+        uid: user?.uid,
+        feedback:feedback,
+        rating: value
+      }
+      const save=await saveFeedback(feed)
+      toast.success('Feedback Sent!')
+      handleFeedbackClose()
+
+    }catch(error){
+      toast.error('Request failed:',error)
+
+    }
+
   }
 
   return (
@@ -374,8 +393,26 @@ export default function ChatPopup() {
       </Dialog>
 
       <Dialog  open={openFeedbackDialog} onClose={handleFeedbackClose}>
-       <DialogTitle sx={{fontSize:"23px",fontFamily:roboto.style.fontFamily}}>Leave Feedback</DialogTitle>
-      <Box sx={{p:3,display:"flex", flexDirection:"column"}}>
+      <Stack
+      direction="row"
+      sx={{
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0.5rem 1rem',
+      }}
+    >
+      <DialogTitle
+        sx={{
+          fontSize: '23px',
+          fontFamily: roboto.style.fontFamily,
+        }}
+      >
+        Leave Feedback
+      </DialogTitle>
+      <IconButton onClick={handleFeedbackClose}>
+        <FontAwesomeIcon icon={faTimes} />
+      </IconButton>
+    </Stack>      <Box sx={{p:3,display:"flex", flexDirection:"column"}}>
       <Stack sx={{display:"flex", flexDirection:"row"}}>
       <Typography component="legend"   sx={{ fontFamily: nunito.style.fontFamily, marginRight:'3px' }}>Rate Conversation:</Typography>
       <Rating
@@ -399,7 +436,7 @@ export default function ChatPopup() {
       InputProps={{
         endAdornment: (
           <InputAdornment position="end">
-            <IconButton >
+            <IconButton onClick={sendFeedback} >
               <FontAwesomeIcon icon={faPaperPlane} />
             </IconButton>
           </InputAdornment>

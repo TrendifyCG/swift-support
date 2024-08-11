@@ -116,9 +116,9 @@ export const saveConversations = async (conversations) => {
   }
 };
 
-export const saveFeedback=async (rating)=>{
+export const saveFeedback=async (feed)=>{
   try{
-    await addDoc(collection(firestore, "feedback"), rating);
+    await addDoc(collection(firestore, "feedback"), feed);
 
 
   } catch(error){
