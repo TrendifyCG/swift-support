@@ -17,12 +17,17 @@ import {
   DialogActions,
   DialogTitle,
   Input,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import { styled } from "@mui/system";
 import { toast } from "react-toastify";
+import { convertFileToBase64 } from "@/app/_util/utilities";
 import { useAuth } from "../_context/AuthContext";
+import Link from "next/link";
+
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
   bottom: "20px",
@@ -67,12 +72,14 @@ const PromptText = styled(Typography)(({ theme, show }) => ({
 const languages = ["English", "Spanish", "French", "German", "Italian"];
 
 export default function ChatPopup() {
-const {user,loading}=useAuth()
+  const { user, loading } = useAuth();
   const [open, setOpen] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
   const [language, setLanguage] = useState(languages[0]);
   const [file, setFile] = useState();
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
   function handleLanguageChange(event) {
     setLanguage(event.target.value);
@@ -101,6 +108,7 @@ const {user,loading}=useAuth()
   const handleClose = () => {
     setOpen(false);
   };
+
   function handleFileUpload(event) {
     const uploadedFile = event.target.files[0];
     if (uploadedFile) {
@@ -109,40 +117,32 @@ const {user,loading}=useAuth()
     handleAttachClose();
   }
 
-  function convertFileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        const base64File = reader.result.split(",")[1];
-        resolve(base64File);
-      };
-      reader.onerror = reject;
-    });
-  }
-
   async function handleSendMessage() {
     if (!message) {
       toast.error("Please enter a message.");
       return;
     }
 
-    let requestData = { language, message, userId:user!=null?user.uid:false, };
+    let requestData = {
+      language,
+      message,
+      userId: user != null ? user.uid : false,
+    };
 
-    // Check if a file is present
     if (file) {
+      setUploadingFile(true);
       try {
-        // Convert file to base64
         const base64File = await convertFileToBase64(file);
-        // Include file data in the request
+
         requestData.file = {
           base64: base64File,
           type: file.type,
         };
       } catch (error) {
-        console.error("File Conversion Failed:", error);
         toast.error("Failed to process the file. Please try again.");
         return;
+      } finally {
+        setUploadingFile(false);
       }
     }
 
@@ -173,7 +173,7 @@ const {user,loading}=useAuth()
   return (
     <>
       <PromptText variant="body2" show={showPrompt ? 1 : 0}>
-        Hey, how can I help you?
+        Hey 👋, I&apos;m here
       </PromptText>
       <FloatingButton onClick={handleClickOpen} show={showPrompt ? 1 : 0}>
         <ChatIcon />
@@ -187,80 +187,118 @@ const {user,loading}=useAuth()
             height: "100%",
           }}
         >
-          <Stack
-            paddingBottom={2}
-            sx={{
-              direction: {
-                xs: "column",
-                md: "row",
-                lg: "row",
-              },
-              alignItems: "flex-start",
-              flex: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Chat with Us
-            </Typography>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Button
-                variant="outlined"
-                startIcon={<AttachFileIcon />}
-                onClick={handleAttachClick}
+          {!user && !loading ? (
+            <>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: 2,
+                  mb: 2,
+                  height: "100%",
+                }}
               >
-                Train Bot
-              </Button>
-
-              <FormControl variant="outlined">
-                <InputLabel>Language</InputLabel>
-                <Select
-                  value={language}
-                  onChange={handleLanguageChange}
-                  label="Language"
-                  sx={{
-                    borderRadius: "10px",
-                    height: "42px",
-                    width: "150px",
-                    "& .MuiSelect-select": {
-                      paddingTop: "10px",
-                      paddingBottom: "10px",
-                    },
-                  }}
-                >
-                  {languages.map((language) => (
-                    <MenuItem key={language} value={language}>
-                      {language}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Stack>
-          </Stack>
-          <Divider />
-          <Stack spacing={2} sx={{ flexGrow: 1, overflowY: "auto" }}>
-            {/* Chat messages will go here */}
-          </Stack>
-          <Box sx={{ mt: "auto" }}>
-            <TextField
-              fullWidth
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              variant="outlined"
-              placeholder="Type your message..."
-              InputProps={{
-                endAdornment: (
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  You are not Authenticated. Login to continue
+                </Typography>
+                <Link href="/login">
                   <Button
-                    onClick={handleSendMessage}
-                    variant="contained"
                     color="primary"
+                    variant="outlined"
+                    sx={{
+                      width: {
+                        xs: "100%",
+                        sm: "160px",
+                        md: "160px",
+                        lg: "160px",
+                      },
+                    }}
                   >
-                    Send
+                    Sign in
                   </Button>
-                ),
-              }}
-            />
-          </Box>
+                </Link>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Stack
+                paddingBottom={2}
+                sx={{
+                  direction: {
+                    xs: "column",
+                    md: "row",
+                    lg: "row",
+                  },
+                  alignItems: "flex-start",
+                  flex: "flex",
+                  justifyContent: "space-between",
+                }}
+              >
+                <Typography variant="h6" sx={{ mb: 2 }}>
+                  Chat with Us
+                </Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <Button
+                    variant="outlined"
+                    startIcon={<AttachFileIcon />}
+                    onClick={handleAttachClick}
+                  >
+                    Train Bot
+                  </Button>
+
+                  <FormControl variant="outlined">
+                    <InputLabel>Language</InputLabel>
+                    <Select
+                      value={language}
+                      onChange={handleLanguageChange}
+                      label="Language"
+                      sx={{
+                        borderRadius: "10px",
+                        height: "42px",
+                        width: "150px",
+                        "& .MuiSelect-select": {
+                          paddingTop: "10px",
+                          paddingBottom: "10px",
+                        },
+                      }}
+                    >
+                      {languages.map((language) => (
+                        <MenuItem key={language} value={language}>
+                          {language}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
+              <Divider />
+              <Stack spacing={2} sx={{ flexGrow: 1, overflowY: "auto" }}>
+                {/* Chat messages will go here */}
+              </Stack>
+              <Box sx={{ mt: "auto" }}>
+                <TextField
+                  fullWidth
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  variant="outlined"
+                  placeholder="Type your message..."
+                  InputProps={{
+                    endAdornment: (
+                      <Button
+                        onClick={handleSendMessage}
+                        variant="contained"
+                        color="primary"
+                      >
+                        Send
+                      </Button>
+                    ),
+                  }}
+                />
+              </Box>
+            </>
+          )}
         </Box>
       </ChatWindow>
       <Dialog open={openAttachDialog} onClose={handleAttachClose}>

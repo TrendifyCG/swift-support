@@ -12,10 +12,10 @@ import AOS from "aos";
 import { useEffect } from "react";
 import ChatPopup from "@/app/_components/ChatPopup";
 import { useSupport } from "@/app/_context/SupportContext";
-// import { useAuth } from "./_context/AuthContext";
+import { useAuth } from "@/app/_context/AuthContext";
 
 export default function LandingPage() {
-  // const { user, loading: userLoading } = useAuth();
+  const { user, loading: userLoading } = useAuth();
 
   const { state } = useSupport();
 
@@ -31,7 +31,7 @@ export default function LandingPage() {
   return (
     <ClientOnly>
       <CssBaseline />
-      <AppBar />
+      <AppBar user={user} userLoading={userLoading} />
       <Hero />
       <Box sx={{ bgcolor: "background.default" }}>
         <Features />

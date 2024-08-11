@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 import { signUpSystem } from "@/app/_lib/auth";
 import { toast } from "react-toastify";
 import { checkUserExistsByUsername } from "@/app/_lib/data-service";
+import { ADMIN_REDIRECT_URL, USER_REDIRECT_URL } from "@/app/_util/constants";
 
 const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -51,10 +52,14 @@ const SignupPage = () => {
         throw new Error("Username already taken.");
       }
 
-      await signUpSystem({ username, email, password });
+      const user = await signUpSystem({ username, email, password });
       toast.success("Signed up successfully!");
 
-      router.push("/user/dashboard");
+      if (user.userRole == "admin") {
+        router.push(ADMIN_REDIRECT_URL);
+      } else {
+        router.push(USER_REDIRECT_URL);
+      }
     } catch (error) {
       if (error.code) {
         if (error.code === "auth/weak-password") {

@@ -19,6 +19,7 @@
     "eslint-config-next": "14.2.5",
     "firebase": "^10.12.5",
     "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
     "next": "14.2.5",
     "nextjs-toploader": "^1.6.12",
     "react": "18.3.1",

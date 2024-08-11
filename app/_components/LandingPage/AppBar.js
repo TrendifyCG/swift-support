@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import ToggleColorMode from "@/app/_components/ToggleColorMode";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -14,8 +14,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import { Avatar, Stack } from "@mui/material";
+import { Avatar, Skeleton, Stack } from "@mui/material";
 import Link from "next/link";
+import AvatarDropdown from "../Backend/AvatarDropdown";
 
 const logoStyle = {
   width: "140px",
@@ -27,30 +28,16 @@ function AppAppBar({ userLoading, user }) {
   const [open, setOpen] = useState(false);
   const [showAuth, setSHowAuth] = useState(false);
 
-  // useEffect(() => {
-  //   if (user) {
-  //     setSHowAuth(false);
-  //   } else {
-  //     setSHowAuth(true);
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    if (user) {
+      setSHowAuth(true);
+    } else {
+      setSHowAuth(true);
+    }
+  }, [user]);
 
   const toggleDrawer = (newOpen) => () => {
     setOpen(newOpen);
-  };
-
-  const scrollToSection = (sectionId) => {
-    const sectionElement = document.getElementById(sectionId);
-    const offset = 128;
-    if (sectionElement) {
-      const targetScroll = sectionElement.offsetTop - offset;
-      sectionElement.scrollIntoView({ behavior: "smooth" });
-      window.scrollTo({
-        top: targetScroll,
-        behavior: "smooth",
-      });
-      setOpen(false);
-    }
   };
 
   return (
@@ -131,6 +118,21 @@ function AppAppBar({ userLoading, user }) {
                 <ToggleColorMode />
                 {!showAuth ? (
                   <>
+                    <Skeleton
+                      animation="wave"
+                      variant="rounded"
+                      width={100}
+                      height={20}
+                    />
+                    <Skeleton
+                      animation="wave"
+                      variant="rounded"
+                      width={100}
+                      height={20}
+                    />
+                  </>
+                ) : !user && !userLoading ? (
+                  <>
                     <Link href="/login">
                       <Button
                         color="primary"
@@ -152,8 +154,8 @@ function AppAppBar({ userLoading, user }) {
                       </Button>
                     </Link>
                   </>
-                ) : (
-                  <Link href="/account/dashboard">
+                ) : user && user.userRole == "admin" ? (
+                  <Link href="/admin/dashboard">
                     <Button
                       color="primary"
                       variant="contained"
@@ -163,6 +165,8 @@ function AppAppBar({ userLoading, user }) {
                       Dashboard
                     </Button>
                   </Link>
+                ) : (
+                  <AvatarDropdown user={user} loading={userLoading} />
                 )}
               </Box>
             </Box>
@@ -196,11 +200,26 @@ function AppAppBar({ userLoading, user }) {
                   >
                     <ToggleColorMode />
                   </Box>
-                  <MenuItem onClick={() => scrollToSection("features")}>
+                  {/* <MenuItem onClick={() => scrollToSection("features")}>
                     Features
-                  </MenuItem>
+                  </MenuItem> */}
                   <Divider />
-                  {!showAuth ? (
+                  {showAuth ? (
+                    <>
+                      <Skeleton
+                        animation="wave"
+                        variant="rounded"
+                        width={100}
+                        height={20}
+                      />
+                      <Skeleton
+                        animation="wave"
+                        variant="rounded"
+                        width={100}
+                        height={20}
+                      />
+                    </>
+                  ) : !user && !userLoading ? (
                     <>
                       <MenuItem>
                         <Link href="/register">
@@ -225,18 +244,19 @@ function AppAppBar({ userLoading, user }) {
                         </Link>
                       </MenuItem>
                     </>
+                  ) : user && user.userRole == "admin" ? (
+                    <Link href="/admin/dashboard">
+                      <Button
+                        color="primary"
+                        variant="contained"
+                        size="small"
+                        component="p"
+                      >
+                        Dashboard
+                      </Button>
+                    </Link>
                   ) : (
-                    <MenuItem>
-                      <Link href="/account/dashboard">
-                        <Button
-                          color="primary"
-                          variant="contained"
-                          sx={{ width: "100%" }}
-                        >
-                          Dashboard
-                        </Button>
-                      </Link>
-                    </MenuItem>
+                    <AvatarDropdown user={user} loading={userLoading} />
                   )}
                 </Box>
               </Drawer>

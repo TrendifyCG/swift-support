@@ -5,6 +5,11 @@ export function supportReducer(state, action) {
         ...state,
         themeMode: state.themeMode === "dark" ? "light" : "dark",
       };
+    case "TOGGLE_DRAWER_MODE":
+      return {
+        ...state,
+        drawerOpen: !state.drawerOpen,
+      };
     default:
       return state;
   }
