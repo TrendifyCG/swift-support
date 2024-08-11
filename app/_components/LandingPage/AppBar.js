@@ -93,11 +93,10 @@ function AppAppBar({ userLoading, user }) {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                ml: "-18px",
                 px: 0,
               }}
             >
-              <Stack direction="row" spacing={1}>
+              <Stack direction="row" spacing={1} sx={{ pl: 2 }}>
                 <Avatar
                   src="/images/logo.png"
                   alt="Swift Support Logo"
