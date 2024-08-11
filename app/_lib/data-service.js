@@ -6,11 +6,18 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   setDoc,
   where,
 } from "firebase/firestore";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 
 export async function checkUserExistsByEmail(email) {
   const usersRef = collection(firestore, "users");
@@ -67,6 +74,22 @@ export const uploadImage = async (image) => {
   }
 };
 
+export const uploadFileDoc = async (file) => {
+  if (!file) return null;
+
+  try {
+    const fileRef = ref(storage, `files/${file.name}`);
+
+    await uploadBytes(fileRef, file);
+
+    const downloadURL = await getDownloadURL(fileRef);
+    return { id: file.name, url: downloadURL };
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
+};
+
 export const uploadBase64Image = async (base64String, imageName) => {
   try {
     const [prefix, base64Data] = base64String.split(",");
@@ -90,11 +113,11 @@ export const uploadBase64Image = async (base64String, imageName) => {
   }
 };
 
-export const getConversations = async (uid, updateConvo) => {
+export const getConversations = async (user) => {
   try {
     const conversationsRef = collection(firestore, "conversations");
 
-    const q = query(conversationsRef, where("uid", "==", uid));
+    const q = query(conversationsRef, where("userId", "==", user.uid));
     const querySnapshot = await getDocs(q);
     const conversations = querySnapshot.docs.map((doc) => ({
       id: doc.id,
@@ -104,14 +127,79 @@ export const getConversations = async (uid, updateConvo) => {
     return conversations;
   } catch (error) {
     console.error("Error fetching conversations:", error);
-    throw new Error("Failed to retrieve conversations");
+    throw error;
   }
 };
 
-export const saveConversations = async (conversations) => {
+export const saveConversations = async (updatedConversation) => {
   try {
-    await addDoc(collection(firestore, "conversations"), conversations);
+    const conversationsRef = collection(firestore, "conversations");
+
+    const docRef = await addDoc(conversationsRef, updatedConversation);
+
+    return docRef.id;
   } catch (error) {
+    console.error("Error saving conversation:", error);
+    throw error;
+  }
+};
+
+export const deleteFile = async (filePath) => {
+  try {
+    const fileRef = ref(storage, filePath);
+
+    await deleteObject(fileRef);
+
+    console.log("File deleted successfully");
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    throw error;
+  }
+};
+
+export const deleteFileMetadata = async (docId) => {
+  try {
+    const fileDocRef = doc(firestore, "files", docId);
+
+    await deleteDoc(fileDocRef);
+
+    console.log("File metadata deleted successfully");
+  } catch (error) {
+    console.error("Error deleting file metadata:", error);
+    throw error;
+  }
+};
+
+export const saveFileMetadata = async (fileMetadata) => {
+  try {
+    const filesCollectionRef = collection(firestore, "files");
+
+    const docRef = await addDoc(filesCollectionRef, fileMetadata);
+
+    return docRef.id;
+  } catch (error) {
+    console.error("Error saving file metadata:", error);
+    throw error;
+  }
+};
+
+export const getUserFile = async (user) => {
+  try {
+    const messagesRef = collection(firestore, "files");
+    const q = query(messagesRef, where("userId", "==", user.uid));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      const data = doc.data();
+      const id = doc.id;
+
+      return { id, data };
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching user file:", error);
     throw error;
   }
 };

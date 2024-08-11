@@ -36,7 +36,7 @@ export default function LandingPage() {
       <Box sx={{ bgcolor: "background.default" }}>
         <Features />
         <Footer />
-        <ChatPopup />
+        {!userLoading && <ChatPopup />}
       </Box>
     </ClientOnly>
   );

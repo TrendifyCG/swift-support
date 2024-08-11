@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useCallback, useContext, useReducer } from "react";
 import { supportReducer } from "@/app/_context/reducer";
 
 const SupportContext = createContext();
@@ -11,6 +11,8 @@ const initialState = {
       ? localStorage.getItem("themeMode") || "light"
       : "light",
   drawerOpen: false,
+  conversationList: [],
+  conversationLoading: false,
 };
 
 function SupportProvider({ children }) {
@@ -27,9 +29,24 @@ function SupportProvider({ children }) {
     dispatch({ type: "TOGGLE_DRAWER_MODE" });
   };
 
+  const updateConversationList = useCallback(
+    (items) => {
+      const updatedList =
+        typeof items === "function" ? items(state.conversationList) : items;
+      dispatch({ type: "SET_CONVERSATION_LIST", payload: updatedList });
+    },
+    [dispatch, state.conversationList]
+  );
+
   return (
     <SupportContext.Provider
-      value={{ state, dispatch, toggleThemeMode, toggleDrawer }}
+      value={{
+        state,
+        dispatch,
+        toggleThemeMode,
+        toggleDrawer,
+        updateConversationList,
+      }}
     >
       {children}
     </SupportContext.Provider>

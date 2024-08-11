@@ -1,48 +1,61 @@
 "use client";
-import { Nunito, Roboto} from '@next/font/google';
-import { saveFeedback } from '../_lib/data-service';
+import { Nunito, Roboto } from "@next/font/google";
+import { saveFeedback } from "../_lib/data-service";
 import React, { useEffect, useState } from "react";
+import { DeleteForeverRounded } from "@mui/icons-material";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import ChatIcon from "@mui/icons-material/Chat";
 import {
+  Box,
   Button,
   Rating,
-  Box,
+  CircularProgress,
   Dialog,
-  IconButton,
-  TextField,
-  Typography,
-  Stack,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Divider,
   DialogActions,
   DialogTitle,
+  Divider,
+  FormControl,
+  IconButton,
   Input,
-  useTheme,
-  useMediaQuery,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
 } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
-import InputAdornment from '@mui/material/InputAdornment';
+import InputAdornment from "@mui/material/InputAdornment";
 import { styled } from "@mui/system";
+import Link from "next/link";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { convertFileToBase64 } from "@/app/_util/utilities";
 import { useAuth } from "../_context/AuthContext";
 import Link from "next/link";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane,faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPaperPlane, faTimes } from "@fortawesome/free-solid-svg-icons";
 
 const nunito = Nunito({
-  weight: ['400', '500', '700'],
-  style: ['italic'],
-  subsets:['latin']
+  weight: ["400", "500", "700"],
+  style: ["italic"],
+  subsets: ["latin"],
 });
-const roboto=Roboto({
-  weight: ['400', '500', '700'],
-  style: ['italic'],
-  subsets:['latin']
+const roboto = Roboto({
+  weight: ["400", "500", "700"],
+  style: ["italic"],
+  subsets: ["latin"],
 });
+import { useSupport } from "../_context/SupportContext";
+import {
+  deleteFile,
+  deleteFileMetadata,
+  getConversations,
+  getUserFile,
+  saveConversations,
+  saveFileMetadata,
+} from "../_lib/data-service";
+import ChatMessage from "./Backend/Chats/ChatMessage";
 
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
@@ -59,17 +72,6 @@ const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   },
   opacity: show,
   transition: "opacity 1s ease-in-out",
-}));
-
-const ChatWindow = styled(Dialog)(({ theme }) => ({
-  "& .MuiDialog-paper": {
-    width: "600px",
-    height: "600px",
-    borderRadius: "10px",
-    overflow: "hidden",
-    background: "white",
-    boxShadow: theme.shadows[5],
-  },
 }));
 
 const PromptText = styled(Typography)(({ theme, show }) => ({
@@ -93,13 +95,28 @@ export default function ChatPopup() {
   const [value, setValue] = useState(0);
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
-  const [feedback, setFeedback]=useState("")
+  const [feedback, setFeedback] = useState("");
   const [messages, setMessages] = useState([]);
   const [language, setLanguage] = useState(languages[0]);
-  const [file, setFile] = useState();
+  const [fileUrl, setFileUrl] = useState("");
+  const [fileId, setFileId] = useState("");
   const [uploadingFile, setUploadingFile] = useState(false);
+  const endOfMessagesRef = useRef(null);
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
   const [openFeedbackDialog, setOpenFeedbackDialog] = useState(false);
+  const [deletingFile, setDeletingFile] = useState(false);
+  const initialBotMessage = "Hello! How can I assist you today?";
+  const [botSending, setBotSending] = useState(false);
+  const [pdfContent, setPdfContent] = useState("");
+  const [pdfId, setPdfId] = useState("");
+  const hasFetchedLastMessage = useRef(false);
+
+  const { state, updateConversationList, dispatch } = useSupport();
+
+  const memoizedConversationListLength = useMemo(
+    () => state.conversationList.length,
+    [state.conversationList]
+  );
 
   function handleLanguageChange(event) {
     setLanguage(event.target.value);
@@ -112,7 +129,6 @@ export default function ChatPopup() {
   function handleFeedbackClick() {
     setOpenFeedbackDialog(true);
   }
-
 
   function handleAttachClose() {
     setOpenAttachDialog(false);
@@ -137,15 +153,99 @@ export default function ChatPopup() {
     setOpen(false);
   };
 
-  function handleFileUpload(event) {
+  async function handleFileUpload(event) {
     const uploadedFile = event.target.files[0];
     if (uploadedFile) {
-      setFile(uploadedFile);
+      setUploadingFile(true);
+      try {
+        const data = await uploadFile(uploadedFile);
+        setFileUrl(data.fileUrl);
+        setFileId(data.id);
+        setUploadingFile(false);
+      } catch (error) {
+        console.log(error);
+        toast.error("File upload failed. Please try again.");
+        setUploadingFile(false);
+      } finally {
+        handleAttachClose();
+      }
     }
-    handleAttachClose();
   }
 
-  async function handleSendMessage() {
+  const handleRemoveFile = async () => {
+    setDeletingFile(true);
+    try {
+      const filePath = `files/${fileId}`;
+      await deleteFile(filePath);
+      await deleteFileMetadata(pdfId);
+      toast.success("File removed successfully.");
+      setFileUrl("");
+      setFileId("");
+      setPdfContent("");
+      setPdfId("");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to remove file. Please try again later.");
+    } finally {
+      setDeletingFile(false);
+    }
+  };
+
+  const uploadFile = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_URL}/api/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const fileUrl = data.fileUrl;
+
+        const responseFile = await fetch("/api/parsePdf", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ fileUrl }),
+        });
+
+        if (!responseFile.ok) {
+          throw new Error("Failed to fetch PDF content");
+        }
+
+        const dataFile = await responseFile.json();
+        setPdfContent(dataFile.text);
+
+        const metadataObject = {
+          userId: user.uid,
+          content: dataFile.text,
+          fileUrl: fileUrl || null,
+          fileId: data.id || null,
+          timestamp: new Date().toISOString(),
+        };
+
+        const filemetaId = await saveFileMetadata(metadataObject);
+        setPdfId(filemetaId);
+        return data;
+      } else {
+        throw new Error("File upload failed.");
+      }
+    } catch (error) {
+      console.error("Error handling file upload:", error);
+      toast.error(error.message);
+    }
+  };
+
+  async function handleSendMessage(e) {
+    e.preventDefault();
+
     if (!message) {
       toast.error("Please enter a message.");
       return;
@@ -156,31 +256,31 @@ export default function ChatPopup() {
       return;
     }
 
-    let requestData = {
+    const newMessage = {
+      userId: user.uid,
+      userMessage: message,
+      botMessage: "Sending...",
+      fileUrl: fileUrl || null,
+      fileId: fileId || null,
+      filemetaId: pdfId || null,
       language,
-      message,
+      timestamp: new Date().toISOString(),
     };
 
-    if (file) {
-      setUploadingFile(true);
-      try {
-        const base64File = await convertFileToBase64(file);
+    updateConversationList([...state.conversationList, newMessage]);
 
-        requestData.file = {
-          base64: base64File,
-          type: file.type,
-        };
-      } catch (error) {
-        toast.error("Failed to process the file. Please try again.");
-        return;
-      } finally {
-        setUploadingFile(false);
-      }
-    }
+    setMessage("");
 
     try {
-      // Send the request to the server
-      const response = await fetch("/api/chat/", {
+      const requestData = {
+        language,
+        message,
+        pdfContent: pdfContent || null,
+      };
+
+      // setBotSending(true);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/chat/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -191,45 +291,119 @@ export default function ChatPopup() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("DATA: ", data);
-        // const conversationData = {
-        //   userId: user.user_id,
-        //   user_message: message,
-        //   bot_message: output,
-        //   sender: systemInstruction,
-        //   file_url: file || file.type || file.base64 ? file : null,
-        //   language: language,
-        //   timestamp: new Date().toISOString(),
-        // };
+        const updatedConversation = {
+          ...newMessage,
+          botMessage: data.response,
+        };
 
-        // await saveConversations(conversationData);
+        updateConversationList((prevList) => [
+          ...prevList.slice(0, -1),
+          { ...newMessage, botMessage: data.response },
+        ]);
+
+        // setBotSending(false);
+        await saveConversations(updatedConversation);
       } else {
-        console.error("API Error:", data.error);
-        toast.error(data.error);
+        // setBotSending(false);
+        throw new Error(data.error);
       }
     } catch (error) {
+      console.log(error);
       toast.error(error.message);
-      console.error("Request Failed:", error);
+      updateConversationList((prevList) =>
+        prevList.map((conv) =>
+          conv.timestamp === newMessage.timestamp
+            ? { ...conv, botMessage: "Failed to send. Please try again." }
+            : conv
+        )
+      );
     }
   }
 
-  const sendFeedback=async ()=>{
-    try{
-      const feed={
+  const sendFeedback = async () => {
+    try {
+      const feed = {
         uid: user?.uid,
-        feedback:feedback,
-        rating: value
-      }
-      const save=await saveFeedback(feed)
-      toast.success('Feedback Sent!')
-      handleFeedbackClose()
-
-    }catch(error){
-      toast.error('Request failed:',error)
-
+        feedback: feedback,
+        rating: value,
+      };
+      const save = await saveFeedback(feed);
+      toast.success("Feedback Sent!");
+      handleFeedbackClose();
+    } catch (error) {
+      toast.error("Request failed:", error);
     }
+  };
+  useEffect(() => {
+    if (!user || memoizedConversationListLength <= 0) return;
 
-  }
+    const fetchLastMessage = async () => {
+      try {
+        const content = await getUserFile(user);
+
+        console.log(content);
+
+        if (content?.id) {
+          setFileId(content.data.fileId);
+          setPdfContent(content.data.content);
+          setFileUrl(content.data.fileUrl);
+          setPdfId(content.id);
+        }
+      } catch (error) {
+        console.log(error);
+        toast.error("Error fetching last message:", error.message);
+      }
+    };
+
+    if (!hasFetchedLastMessage.current && memoizedConversationListLength > 0) {
+      fetchLastMessage();
+      hasFetchedLastMessage.current = true;
+    }
+  }, [user, memoizedConversationListLength]);
+
+  useEffect(() => {
+    if (!user || memoizedConversationListLength > 0) return;
+
+    const fetchConversations = async () => {
+      dispatch({ type: "SET_CONVERSATION_LOADING", payload: true });
+
+      try {
+        const conversations = await getConversations(user);
+
+        updateConversationList(conversations);
+      } catch (error) {
+        toast.error("Error fetching conversations:", error);
+      } finally {
+        dispatch({ type: "SET_CONVERSATION_LOADING", payload: false });
+      }
+    };
+
+    fetchConversations();
+  }, [user, dispatch, updateConversationList, memoizedConversationListLength]);
+
+  useEffect(() => {
+    if (open) {
+      setTimeout(() => {
+        endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [state.conversationList]);
+
+  // useEffect(() => {
+  //   if (open) {
+  //     document.body.style.overflow = "hidden";
+  //   } else {
+  //     document.body.style.overflow = "";
+  //   }
+
+  //   return () => {
+  //     document.body.style.overflow = "";
+  //   };
+  // }, [open]);
 
   return (
     <>
@@ -239,7 +413,20 @@ export default function ChatPopup() {
       <FloatingButton onClick={handleClickOpen} show={showPrompt ? 1 : 0}>
         <ChatIcon />
       </FloatingButton>
-      <ChatWindow open={open} onClose={handleClose}>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        sx={(theme) => ({
+          "& .MuiDialog-paper": {
+            width: "600px",
+            height: "600px",
+            borderRadius: "10px",
+            overflow: "hidden",
+            background: "white",
+            boxShadow: theme.shadows[5],
+          },
+        })}
+      >
         <Box
           sx={{
             p: 2,
@@ -297,29 +484,51 @@ export default function ChatPopup() {
                   justifyContent: "space-between",
                 }}
               >
-              <Stack
-      direction="row"
-      sx={{ justifyContent: 'space-between', width: '100%', alignItems: 'center', mb: 2 }} >
-      <Typography variant="h6">
-        Chat with Us
-      </Typography>
-      <Button
-        onClick={handleFeedbackClick}
-        variant="contained"
-        color="primary"
-        sx={{ fontFamily: nunito.style.fontFamily }}
-      >
-        Give Feedback
-      </Button>
-    </Stack>
-                <Stack direction="row" spacing={2} alignItems="center">
+                <Stack
+                  direction="row"
+                  sx={{
+                    justifyContent: "space-between",
+                    width: "100%",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="h6">Chat with Us</Typography>
                   <Button
-                    variant="outlined"
-                    startIcon={<AttachFileIcon />}
-                    onClick={handleAttachClick}
+                    onClick={handleFeedbackClick}
+                    variant="contained"
+                    color="primary"
+                    sx={{ fontFamily: nunito.style.fontFamily }}
                   >
-                    Train Bot
+                    Give Feedback
                   </Button>
+                </Stack>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  {!fileUrl ? (
+                    <Button
+                      variant="outlined"
+                      startIcon={<AttachFileIcon />}
+                      onClick={handleAttachClick}
+                    >
+                      Train Bot
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      startIcon={<DeleteForeverRounded />}
+                      onClick={handleRemoveFile}
+                      disabled={deletingFile}
+                      sx={{
+                        "&.Mui-disabled": {
+                          color: "#fff",
+                          backgroundImage:
+                            "linear-gradient(to bottom, #646669, #B5B8BB)",
+                        },
+                      }}
+                    >
+                      Remove Pdf
+                    </Button>
+                  )}
 
                   <FormControl variant="outlined">
                     <InputLabel>Language</InputLabel>
@@ -344,12 +553,41 @@ export default function ChatPopup() {
                       ))}
                     </Select>
                   </FormControl>
-         
                 </Stack>
               </Stack>
               <Divider />
-              <Stack spacing={2} sx={{ flexGrow: 1, overflowY: "auto" }}>
-                {/* Chat messages will go here */}
+              <Stack spacing={2} sx={{ flexGrow: 1, overflowY: "auto", p: 2 }}>
+                {state.conversationList.length === 0 ? (
+                  <ChatMessage
+                    message={initialBotMessage}
+                    isBot={true}
+                    user={user}
+                    botSending={botSending}
+                  />
+                ) : (
+                  state.conversationList
+                    .slice()
+                    .sort(
+                      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+                    )
+                    .map((conversation, index) => (
+                      <div key={index}>
+                        <ChatMessage
+                          message={conversation.userMessage}
+                          isBot={false}
+                          user={user}
+                          botSending={botSending}
+                        />
+                        <ChatMessage
+                          message={conversation.botMessage}
+                          isBot={true}
+                          user={user}
+                          botSending={botSending}
+                        />
+                      </div>
+                    ))
+                )}
+                <div ref={endOfMessagesRef} />
               </Stack>
               <Box sx={{ mt: "auto" }}>
                 <TextField
@@ -374,7 +612,7 @@ export default function ChatPopup() {
             </>
           )}
         </Box>
-      </ChatWindow>
+      </Dialog>
       <Dialog open={openAttachDialog} onClose={handleAttachClose}>
         <DialogTitle>Attach PDF</DialogTitle>
         <Box sx={{ p: 2, display: "flex", flexDirection: "column" }}>
@@ -384,6 +622,7 @@ export default function ChatPopup() {
             onChange={handleFileUpload}
             sx={{ mb: 2 }}
           />
+          {uploadingFile && <CircularProgress sx={{ mb: 2 }} />}
           <DialogActions>
             <Button onClick={handleAttachClose} color="primary">
               Cancel
@@ -392,59 +631,63 @@ export default function ChatPopup() {
         </Box>
       </Dialog>
 
-      <Dialog  open={openFeedbackDialog} onClose={handleFeedbackClose}>
-      <Stack
-      direction="row"
-      sx={{
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '0.5rem 1rem',
-      }}
-    >
-      <DialogTitle
-        sx={{
-          fontSize: '23px',
-          fontFamily: roboto.style.fontFamily,
-        }}
-      >
-        Leave Feedback
-      </DialogTitle>
-      <IconButton onClick={handleFeedbackClose}>
-        <FontAwesomeIcon icon={faTimes} />
-      </IconButton>
-    </Stack>      <Box sx={{p:3,display:"flex", flexDirection:"column"}}>
-      <Stack sx={{display:"flex", flexDirection:"row"}}>
-      <Typography component="legend"   sx={{ fontFamily: nunito.style.fontFamily, marginRight:'3px' }}>Rate Conversation:</Typography>
-      <Rating
-      
-        name="product-rating"
-        value={value}
-        onChange={(event, newValue) => {
-          setValue(newValue);
-        }}
-      />
-       
-      </Stack>
-      <TextField
-      type="text"
-      fullWidth
-      variant="outlined"
-      placeholder="Enter your feedback..."
-      value={feedback}
-      onChange={(e) => setFeedback(e.target.value)}
-      sx={{ mb: 2, marginTop: '1rem' }}
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton onClick={sendFeedback} >
-              <FontAwesomeIcon icon={faPaperPlane} />
-            </IconButton>
-          </InputAdornment>
-        ),
-      }}
-    />
-      </Box>
-</Dialog>
+      <Dialog open={openFeedbackDialog} onClose={handleFeedbackClose}>
+        <Stack
+          direction="row"
+          sx={{
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0.5rem 1rem",
+          }}
+        >
+          <DialogTitle
+            sx={{
+              fontSize: "23px",
+              fontFamily: roboto.style.fontFamily,
+            }}
+          >
+            Leave Feedback
+          </DialogTitle>
+          <IconButton onClick={handleFeedbackClose}>
+            <FontAwesomeIcon icon={faTimes} />
+          </IconButton>
+        </Stack>{" "}
+        <Box sx={{ p: 3, display: "flex", flexDirection: "column" }}>
+          <Stack sx={{ display: "flex", flexDirection: "row" }}>
+            <Typography
+              component="legend"
+              sx={{ fontFamily: nunito.style.fontFamily, marginRight: "3px" }}
+            >
+              Rate Conversation:
+            </Typography>
+            <Rating
+              name="product-rating"
+              value={value}
+              onChange={(event, newValue) => {
+                setValue(newValue);
+              }}
+            />
+          </Stack>
+          <TextField
+            type="text"
+            fullWidth
+            variant="outlined"
+            placeholder="Enter your feedback..."
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            sx={{ mb: 2, marginTop: "1rem" }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={sendFeedback}>
+                    <FontAwesomeIcon icon={faPaperPlane} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+      </Dialog>
     </>
   );
 }

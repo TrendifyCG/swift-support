@@ -37,9 +37,8 @@ async function saveFileLocally(base64, type) {
   return filePath;
 }
 
-export async function uploadDoc(fileData, apiKey) {
+export async function uploadDoc(base64, type, apiKey) {
   const fileManager = new GoogleAIFileManager(apiKey);
-  const { base64, type } = fileData;
 
   const filePath = await saveFileLocally(base64, type);
 
