@@ -68,6 +68,7 @@ export default function ChatPopup() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [message, setMessage] = useState("");
   const [language, setLanguage] = useState(languages[0]);
+  const [file, setFile]=useState()
   const [openAttachDialog, setOpenAttachDialog] = useState(false);
 
   function handleLanguageChange(event) {
@@ -82,14 +83,14 @@ export default function ChatPopup() {
     setOpenAttachDialog(false);
   }
 
-  function handleFileUpload(event) {
+  /*function handleFileUpload(event) {
     const file = event.target.files[0];
     if (file) {
       // Handle the file (upload, display, etc.)
       console.log("File attached:", file);
     }
     handleAttachClose();
-  }
+  }*/
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -106,6 +107,58 @@ export default function ChatPopup() {
   const handleClose = () => {
     setOpen(false);
   };
+  function handleFileUpload(event) {
+    const uploadedFile = event.target.files[0];
+    if (uploadedFile) {
+      setFile(uploadedFile); 
+    }
+    handleAttachClose();
+  }
+
+  async function handleSendMessage() {
+    if (!message) {
+      alert("Please enter a message.");
+      return;
+    }
+
+    let base64File;
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = async () => {
+    base64File = reader.result.split(',')[1]; 
+  }
+  
+    
+    const requestData = {
+        language,
+        message,
+        file: {
+          base64: base64File,
+          type: file.type,
+        },
+      };
+
+      try {
+        const response = await fetch("/api/chat/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestData),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          console.log("API Response:", data);
+        } else {
+          console.error("API Error:", data.error);
+        }
+      } catch (error) {
+        console.error("Request Failed:", error);
+      }
+    };
+  
 
   return (
     <>
@@ -187,7 +240,7 @@ export default function ChatPopup() {
               placeholder="Type your message..."
               InputProps={{
                 endAdornment: (
-                  <Button variant="contained" color="primary">
+                  <Button onClick={handleSendMessage} variant="contained" color="primary">
                     Send
                   </Button>
                 ),
