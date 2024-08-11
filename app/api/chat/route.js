@@ -56,6 +56,10 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { message, file, language } = body;
+    if (!file || !file.base64 || !file.type) {
+        throw new Error("File data is missing or incomplete");
+      }
+  
     const url = await uploadDoc(file);
 
     const model = await genAI.getGenerativeModel({
