@@ -28,7 +28,7 @@ import { styled } from "@mui/system";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../_context/AuthContext";
-
+import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPaperPlane, faTimes } from "@fortawesome/free-solid-svg-icons";
 
