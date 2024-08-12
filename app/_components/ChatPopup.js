@@ -42,6 +42,7 @@ import {
   saveFileMetadata,
 } from "../_lib/data-service";
 import ChatMessage from "./Backend/Chats/ChatMessage";
+import Link from "next/link";
 
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
@@ -58,6 +59,7 @@ const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   },
   opacity: show,
   transition: "opacity 1s ease-in-out",
+  zIndex: 5,
 }));
 
 const PromptText = styled(Typography)(({ theme, show }) => ({
@@ -71,6 +73,7 @@ const PromptText = styled(Typography)(({ theme, show }) => ({
   boxShadow: theme.shadows[4],
   opacity: show,
   transition: "opacity 1s ease-in-out",
+  zIndex: 5,
 }));
 
 const languages = ["English", "Spanish", "French", "German", "Italian"];
@@ -575,6 +578,8 @@ export default function ChatPopup() {
               <Box sx={{ mt: "auto" }}>
                 <TextField
                   fullWidth
+                  multiline
+                  maxRows={10}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   variant="outlined"
