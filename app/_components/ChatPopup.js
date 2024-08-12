@@ -42,8 +42,6 @@ import {
   saveFileMetadata,
 } from "../_lib/data-service";
 import ChatMessage from "./Backend/Chats/ChatMessage";
-import Link from "next/link";
-
 const FloatingButton = styled(IconButton)(({ theme, show }) => ({
   position: "fixed",
   bottom: "20px",
